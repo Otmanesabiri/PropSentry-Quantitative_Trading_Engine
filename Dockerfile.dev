@@ -1,0 +1,41 @@
+# ============================================================
+# PropSentry — Dev / Test Dockerfile
+# ============================================================
+# Used by: docker compose --profile test up tests
+# Includes dev tools (pytest, ruff, mypy) for CI/headless testing.
+# ============================================================
+
+FROM python:3.11-slim
+
+WORKDIR /app
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    curl gcc \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install all deps including dev tools (no MetaTrader5)
+RUN pip install --upgrade pip && \
+    pip install \
+        pydantic>=2.7.0 \
+        pydantic-settings>=2.2.0 \
+        pytz>=2024.1 \
+        pandas>=2.2.0 \
+        numpy>=1.26.0 \
+        redis>=5.0.0 \
+        "python-telegram-bot>=21.0" \
+        sqlalchemy>=2.0.0 \
+        httpx>=0.27.0 \
+        loguru>=0.7.0 \
+        pyyaml>=6.0.1 \
+        fastapi>=0.111.0 \
+        uvicorn>=0.30.0 \
+        pytest>=8.0.0 \
+        pytest-asyncio>=0.23.0 \
+        pytest-mock>=3.14.0 \
+        ruff>=0.4.0 \
+        mypy>=1.10.0
+
+# Copy full source for testing
+COPY . .
+
+CMD ["python", "-m", "pytest", "tests/", "-v", "--tb=short"]

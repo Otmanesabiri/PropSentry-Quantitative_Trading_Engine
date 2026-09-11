@@ -1,0 +1,37 @@
+prop_firm:
+  name: "GFT_FTMO_5K_EVAL"
+  account_type: "2-Step Evaluation"
+  initial_balance: 5000.00
+  currency: "USD"
+
+drawdown:
+  calculation_mode: "EQUITY_CONTINUOUS" # Equity-based tick-by-tick
+  daily_loss_limit_pct: 0.05            # 5.0% = 250.00 USD
+  daily_kill_switch_pct: 0.042          # 4.2% = 210.00 USD (Internal safety buffer)
+  max_overall_loss_pct: 0.10            # 10.0% = 500.00 USD static floor (4500.00 USD)
+  reset_time: "00:00:00"
+  reset_timezone: "Europe/Prague"
+
+risk_limits:
+  risk_per_trade_pct: 0.005             # 0.5% = 25.00 USD
+  min_risk_reward_ratio: 2.0            # 1:2 minimum
+  breakeven_trigger_r: 1.0              # Move SL to BE at +1R
+  max_open_positions: 1                 # One active trade at a time
+  max_daily_trades: 3
+
+session_filters:
+  timezone: "UTC"
+  windows:
+    london_open:
+      start: "08:00"
+      end: "11:00"
+    new_york_open:
+      start: "13:30"
+      end: "16:30"
+  weekend_protection:
+    flatten_friday_time: "20:00"        # Close all exposures before market close
+
+news_blackout:
+  lookahead_minutes: 30
+  lookbehind_minutes: 30
+  monitored_impacts: ["HIGH_IMPACT"]

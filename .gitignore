@@ -1,0 +1,57 @@
+# .gitignore — PropSentry Trading Engine
+
+# ─── Python ───────────────────────────────────────────────────────────────
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+*.egg
+*.egg-info/
+dist/
+build/
+.eggs/
+*.whl
+
+# ─── Virtual environments ─────────────────────────────────────────────────
+.venv/
+venv/
+env/
+ENV/
+
+# ─── Local config (NEVER commit credentials) ──────────────────────────────
+config/settings.local.yaml
+
+# ─── Data directories (large files, managed separately) ───────────────────
+data/historical/
+data/backups/
+data/cache/
+data/trading.db
+*.db
+*.db-wal
+*.db-shm
+
+# ─── Logs ─────────────────────────────────────────────────────────────────
+logs/
+*.log
+
+# ─── IDE / OS ─────────────────────────────────────────────────────────────
+.vscode/
+.idea/
+*.DS_Store
+Thumbs.db
+
+# ─── Environment / Secrets (NEVER commit) ─────────────────────────────────
+.env
+.env.*
+# .env.example is committed (template only, no real secrets)
+
+# ─── Testing / Coverage ───────────────────────────────────────────────────
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+htmlcov/
+.coverage
+coverage.xml
+
+# ─── Type stubs ───────────────────────────────────────────────────────────
+*.pyi

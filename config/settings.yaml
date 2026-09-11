@@ -1,0 +1,53 @@
+# config/settings.yaml
+# Paramètres par défaut de l'architecture système
+# Ces valeurs peuvent être surchargées via settings.local.yaml ou variables d'environnement
+
+system:
+  environment: "development"  # development | paper | live
+  log_level: "INFO"
+  log_file: "logs/trading_engine.log"
+  log_rotation: "1 day"
+  log_retention: "14 days"
+
+redis:
+  host: "localhost"
+  port: 6379
+  db: 0
+  market_context_key: "market_context_state"
+  context_ttl_seconds: 900  # 15 minutes
+
+broker:
+  platform: "MT5"
+  symbol: "EURUSD"
+  magic_number: 202401
+  deviation: 10           # Max slippage in points
+  connection_timeout_s: 10
+  retry_attempts: 3
+  retry_delay_s: 2.0
+
+engine:
+  tick_interval_ms: 250   # Polling interval for live tick processing
+  bar_timeframe: "M15"    # Primary signal timeframe
+  warmup_bars: 200        # Bars required before signals are valid
+
+telegram:
+  parse_mode: "HTML"
+  alert_timeout_s: 120    # 2 minutes to respond before auto-reject
+
+news:
+  provider: "finnhub"     # finnhub | forexfactory
+  calendar_refresh_min: 60
+
+database:
+  url: "sqlite:///data/trading.db"
+  echo: false
+  pool_pre_ping: true
+
+supervisor:
+  heartbeat_interval_s: 30
+  deadman_ping_interval_s: 300   # 5 minutes
+  max_missed_heartbeats: 3
+
+backup:
+  retention_days: 14
+  output_dir: "data/backups"

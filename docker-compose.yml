@@ -1,0 +1,111 @@
+# ============================================================
+# PropSentry — Docker Compose
+# ============================================================
+# Orchestrates the full stack:
+#   - engine   : Main trading engine (Linux container)
+#   - redis    : LLM context store (TTL 15 min — INVARIANT 7)
+#
+# The MT5 Bridge runs SEPARATELY on the Windows Host (not in Docker).
+# Start the bridge first: python src/broker/mt5_bridge.py
+# ============================================================
+
+version: "3.9"
+
+services:
+
+  # ── Redis — LLM context cache ─────────────────────────────────────────
+  redis:
+    image: redis:7-alpine
+    container_name: propsentry-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    command: redis-server --appendonly yes --maxmemory 256mb --maxmemory-policy allkeys-lru
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - propsentry-net
+
+  # ── Engine — Main trading engine ──────────────────────────────────────
+  engine:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: final
+    container_name: propsentry-engine
+    restart: unless-stopped
+    depends_on:
+      redis:
+        condition: service_healthy
+    environment:
+      # ── System ──
+      SYSTEM__ENVIRONMENT: ${SYSTEM__ENVIRONMENT:-live}
+      SYSTEM__LOG_LEVEL: ${SYSTEM__LOG_LEVEL:-INFO}
+
+      # ── Redis ──
+      REDIS__HOST: redis
+      REDIS__PORT: "6379"
+
+      # ── MT5 Bridge (Windows Host) ──
+      MT5_BRIDGE_HOST: ${MT5_BRIDGE_HOST:-host.docker.internal}
+      MT5_BRIDGE_PORT: ${MT5_BRIDGE_PORT:-8765}
+      MT5_BRIDGE_API_KEY: ${MT5_BRIDGE_API_KEY:-changeme-secret-key}
+
+      # ── Telegram ──
+      TELEGRAM__BOT_TOKEN: ${TELEGRAM__BOT_TOKEN}
+      TELEGRAM__CHAT_ID: ${TELEGRAM__CHAT_ID}
+
+      # ── News API ──
+      NEWS__FINNHUB_API_KEY: ${NEWS__FINNHUB_API_KEY}
+
+      # ── Database ──
+      DATABASE__URL: sqlite:////app/data/trading.db
+
+    volumes:
+      # Persist SQLite database and logs outside the container
+      - ./data:/app/data
+      - ./logs:/app/logs
+      # Mount local config (settings.local.yaml for credentials)
+      - ./config/settings.local.yaml:/app/config/settings.local.yaml:ro
+
+    networks:
+      - propsentry-net
+
+    # Override for specific modes:
+    # command: ["python", "scripts/run_paper.py"]
+    # command: ["python", "scripts/run_backtest.py", "--from", "2024-01-01", "--to", "2024-06-30"]
+
+  # ── Tests (run-once service, not started by default) ─────────────────
+  tests:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    container_name: propsentry-tests
+    profiles:
+      - test   # Only runs with: docker compose --profile test up tests
+    environment:
+      REDIS__HOST: redis
+      REDIS__PORT: "6379"
+    depends_on:
+      redis:
+        condition: service_healthy
+    volumes:
+      - .:/app
+    networks:
+      - propsentry-net
+    command: ["python", "-m", "pytest", "tests/", "-v", "--tb=short"]
+
+# ── Networks ──────────────────────────────────────────────────────────────
+networks:
+  propsentry-net:
+    driver: bridge
+
+# ── Volumes ───────────────────────────────────────────────────────────────
+volumes:
+  redis_data:
+    driver: local

@@ -1,0 +1,37 @@
+[project]
+name = "quant-copilot-engine"
+version = "0.1.0"
+description = "Deterministic Prop Firm trading engine with asynchronous LLM context filter and Telegram copilot"
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+    "MetaTrader5>=5.0.45",
+    "pydantic>=2.7.0",
+    "pydantic-settings>=2.2.0",
+    "pytz>=2024.1",
+    "pandas>=2.2.0",
+    "numpy>=1.26.0",
+    "redis>=5.0.0",
+    "python-telegram-bot>=21.0",
+    "sqlalchemy>=2.0.0",
+    "httpx>=0.27.0",
+    "loguru>=0.7.0",
+    "pyyaml>=6.0.1",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0.0",
+    "pytest-asyncio>=0.23.0",
+    "pytest-mock>=3.14.0",
+    "ruff>=0.4.0",
+    "mypy>=1.10.0",
+]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+asyncio_mode = "auto"
